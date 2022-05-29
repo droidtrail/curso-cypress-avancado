@@ -48,6 +48,7 @@ describe('Hacker Stories', () => {
       }).as('getNewTermStories')
 
       cy.get('#search')
+        .should('be.visible')
         .clear()
         .type(`${newTerm}{enter}`)
 
@@ -120,48 +121,58 @@ describe('Hacker Stories', () => {
             .should('have.attr', 'href', stories.hits[1].url)
         })
 
-        // it('shows 20 stories, then the next 20 after clicking "More"', () => {
-        //   cy.intercept({
-        //     method: 'GET',
-        //     pathname: '**/search',
-        //     query: {
-        //       query: initialTerm,
-        //       page: '1'
-        //     }
-        //   }).as('getNextStories')
+        it('shows 20 stories, then the next 20 after clicking "More"', () => {
+          cy.intercept({
+            method: 'GET',
+            pathname: '**/search',
+            query: {
+              query: initialTerm,
+              page: '1'
+            }
+          }).as('getNextStories')
 
-        //   cy.get('.item').should('have.length', 20)
+          cy.get('.item').should('have.length', 2)
 
-        //   cy.contains('More').click()
+          cy.contains('More')
+            .should('be.visible')
+            .click()
 
-        //   cy.wait('@getNextStories')
+          cy.wait('@getNextStories')
 
-        //   cy.get('.item').should('have.length', 40)
-        // })
+          cy.get('.item').should('have.length', 40)
+        })
 
-        // it('searches via the last searched term', () => {
-        //   cy.get('#search')
-        //     .type(`${newTerm}{enter}`)
+        it('searches via the last searched term', () => {
+          cy.intercept(
+            'GET',
+            `**/search?query=${newTerm}&page=0`,
+          ).as('getNewTermStories')
 
-        //   cy.wait('@getNewTermStories')
+          cy.get('#search')
+            .should('be.visible')
+            .clear()
+            .type(`${newTerm}{enter}`)
 
-        //   cy.get(`button:contains(${initialTerm})`)
-        //     .should('be.visible')
-        //     .click()
+          cy.wait('@getNewTermStories')
 
-        //   cy.wait('@getStories')
+          cy.get(`button:contains(${initialTerm})`)
+            .should('be.visible')
+            .click()
 
-        //   cy.get('.item').should('have.length', 20)
-        //   cy.get('.item')
-        //     .first()
-        //     .should('contain', initialTerm)
-        //   cy.get(`button:contains(${newTerm})`)
-        //     .should('be.visible')
-        // })
+          cy.wait('@getStories')
+
+          cy.get('.item').should('have.length', 22)
+          cy.get('.item')
+            .first()
+            .should('contain', initialTerm)
+          cy.get(`button:contains(${newTerm})`)
+            .should('be.visible')
+        })
 
         it('shows on story after dimissing the first one', () => {
           cy.get('.button-small')
             .first()
+            .should('be.visible')
             .click()
           cy.get('.item').should('have.length', 1)
         })
